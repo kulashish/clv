@@ -1,0 +1,17 @@
+{
+    "contents" : "cdnowElog <- system.file(\"data/cdnowElog.csv\", package = \"BTYD\")\n\nelog=read.csv(cdnowElog)                # read data\nhead(elog)                              # take a look\nelog<-elog[,c(2,3,5)]                   # we need these columns\nnames(elog) <- c(\"cust\",\"date\",\"sales\") # model functions expect these names\n\n# format date\nelog$date <- as.Date(as.character(elog$date), format=\"%Y%m%d\")\nelog <- dc.MergeTransactionsOnSameDate(elog)\n\nend.of.cal.period <- min(elog$date)+as.numeric((max(elog$date)-min(elog$date))/2)\ndata <- dc.ElogToCbsCbt(elog, per=\"week\", T.cal=end.of.cal.period, merge.same.date=TRUE, statistic = \"freq\") \n",
+    "created" : 1431680994236.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "4270500893",
+    "id" : "85CE08D4",
+    "lastKnownWriteTime" : 4121392004631441463,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

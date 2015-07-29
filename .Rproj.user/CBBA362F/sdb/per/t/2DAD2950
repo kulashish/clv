@@ -1,0 +1,17 @@
+{
+    "contents" : "library(bbmle)\n# x: number of transactions in the period (0, T] (frequency)\n# t: time of last transaction (recency)\n\nLL_DET <- function(r, alpha, a, b)\n{\n  p1 <- gamma(r+x) * alpha^r / (beta(a, b) * gamma(r))\n  p2 <- beta(a, b+x) / (alpha + T)^(r+x) * p1\n  p3 <- beta(a+1, b+x-1) / (alpha + t)^(r+x) * p1\n  L  <- p2\n  if(x > 0)\n    L <- L + p3\n  -sum(log(L))\n}\n\nfit <- mle2(LL_DET, start=list(r=1, alpha=1, a=1, b=1))",
+    "created" : 1430817463967.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3968755095",
+    "id" : "2DAD2950",
+    "lastKnownWriteTime" : 1431338481,
+    "path" : "C:/Users/akulkarni/RWorkspace/rfm/clv_pred.R",
+    "project_path" : "clv_pred.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

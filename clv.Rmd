@@ -1,0 +1,109 @@
+---
+title: "Going Beyond RFM - CLV Prediction"
+author: "Ashish Kulkarni"
+date: "Wednesday, April 08, 2015"
+output: ioslides_presentation
+---
+
+## CLV Prediction using RFM
+
+Assumes monetary value to be independent of the underlying transaction process.
+
+$$CLV = margin \times revenue/transaction \times DET$$
+
+where, DET (Discounted Expected Transactions) is the present value of the future transaction flow.
+
+Next, we develop separate submodels to predict DET and expected revenue per transaction.
+
+## Submodel for DET prediction - The Pareto/NBD Model
+
+<small>
+Based on five assuptions:
+
+- While active, the number of transactions made by a user in a time period $t$ follows a Poisson distribution with transaction rate $\lambda$.
+- Heterogeneity in transaction rates across users follows a gamma distribution with shape parameter $r$ and scale parameter $\alpha$.
+- Each user has an unobserved ``lifetime'' $\tau$. This point at which the user churns is distributed exponentially with dropout rate $\mu$.
+- The prior on dropout rate follows a gamma distribution with shape parameter $s$ and scale parameter $\beta$.
+- The transaction rate $\lambda$ and dropout rate $\mu$ vary independently across customers.
+</small>
+
+## Notations
+
+<small>
+Requires only two pieces of input about each user's past purchasing history:
+
+- recency: time from now of occurrence of last transaction
+- frequency: number of transactions made during a specified time period
+
+This is expressed using the notation $(X = x, t_x, T)$, where $x$ is the number of observed transactions in the time period $(0, T]$ and $t_x (0 < t_x \leq T)$, is the time of last transaction.
+
+$$DET(\delta|r,\alpha,s,\beta,X=x,t_x,T) = \frac{\alpha^r\beta^s\delta^{s-1}\Gamma(r+x+1)\Psi[s,s;\delta(\beta+T)]}{\Gamma(r)(\alpha+T)^{r+x+1}L(r,\alpha,s,\beta|X=x,t_x,T)}$$
+where, $r,\alpha,s,\beta$ are the model parameters, $\Psi(.)$ is the confluent hypergeometric function of the second kind; and $L(.)$ is the Pareto/NBD likelihood function.
+</small>
+
+## Comments about Pareto/NBD Model
+
+<small>
+
+- The Pareto/NBD model does quite well in modeling the user behavior.
+- The emperical performance of the model is excellent and well proven. However, the model suffers from the following drawbacks.
+- The likelihood function associated with the Pareto/NBD model is quite complex, involving numerous evaluations of the Gaussian hypergeometric function.
+- Multiple evaluations of the Gaussian hypergeometric function are compuatationally intensive.
+</small>
+
+## Submodel DET Prediction - BG/NBD Model
+
+<small>
+Based on following five assumptions:
+
+- While active, the numbre of transactions made by a user follows a Poisson distribution with transaction rate $\lambda$.
+- Heterogeneity in $\lambda$ follows a gamma distribution with shape parameter $r$ and scale parameter $\alpha$.
+- After any transaction, a user becomes inactive with probability $p$, so, $P$(inactive immediately after $j^{th}$ transaction) $= p(1-p)^{j-1}, j = 1,2,3,...$.
+- Heterogeneity in $p$ follows a beta distribution, $p \sim Beta(a,b)$.
+- The transaction rate $\lambda$ and churn probability $p$ vary independently across users.
+</small>
+
+## Model Development
+
+<small>
+Likelihood function for a randomly chosen user with purchase history $(X=x,t_x,T)$
+$$
+  \begin{aligned}
+  L(r,\alpha,a,b|X=x,t_x,T) &= \frac{B(a,b+x)}{B(a,b)}\frac{\Gamma(r+x)\alpha^r}{\Gamma(r)(\alpha+T)^{r+x}} \\ 
+  &+ \delta_{x>0}\frac{B(a+1,b+x-1)}{B(a,b)}\frac{\Gamma(r+x)\alpha^r}{\Gamma(r)(\alpha+t_x)^{r+x}}
+  \end{aligned}
+$$
+The model parameters can be estimated using maximum likelihood estimation. For a sample of $N$ users, where user $i$ had $X_i=x_i$ transactions in the period $(0,T_i]$, with recency $t_{x_i}$, the sample log likelihood is given as:
+$$LL(r,\alpha,a,b) = \sum_{i=1}^N ln[L(r,\alpha,a,b|X_i=x_i,t_{x_i},T_i)]$$
+This can be maximized using standard numerical optimization routines
+</small>
+
+## Expression for DET prediction
+
+<small>
+$$
+  \begin{aligned}
+  E[Y(t)|X &= x,t_x,T,r,\alpha,a,b] = \\
+   &\frac{\frac{a+b+x-1}{a-1}[1-(\frac{\alpha+T}{\alpha+T+t})^{r+x} {}_{2}F_{1}(r+x,b+x;a+b+x-1;\frac{t}{\alpha+T+t})]}{1+\delta_{x>0}\frac{a}{b+x-1}(\frac{\alpha+T}{\alpha+t_x})^{r+x}}
+  \end{aligned}
+$$
+
+- Requires single evaluation of the Gaussian hypergeometric function for any user. Remainder of the expression is simple arithmetic.
+- Thus compared to Pareto/NBD, BG/NBD is computationally efficient.
+- Performance of this model is almost at-par with the Pareto/NBD model.
+</small>
+
+## Submodel for Monetary Value Prediction : Gamma-Gamma Model
+
+<small>
+
+- The amount of a user's transaction varies randomly around his/her average transaction value. For a given user with $x$ transactions, if $z_1, ..., z_x$ denote the dollar value of each transaction, then the observed average value is $m_x = \sum_{i=1}^xz_i/x$. Our goal is to infer $E(M)$, the (unobserved) population mean transaction value.
+- We assume that the $z_i$ are i.i.d. gamma variables with shape parameter $p$ and scale parameter $\nu$.
+- To account for heterogeneity in the underlying mean transaction values across customers, we assume a gamma prior on $\nu$, so that, $\nu\sim\Gamma(q, \gamma)$
+- It can be shown that,
+$$
+  \begin{aligned}
+  E(M|p,q,\gamma,m_x,x) = \Big(\frac{q-1}{px+q-1}\Big)\frac{\gamma p}{q-1} + \Big(\frac{px}{px+q-1}\Big)m_x.
+  \end{aligned}
+$$
+</small>

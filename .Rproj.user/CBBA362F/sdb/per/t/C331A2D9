@@ -1,0 +1,17 @@
+{
+    "contents" : "library(BTYD)\nsource(\"clv_header_new.R\")\n\n# Resrict the transactions to only those with repeat transactions; x > 0\n# data.train <- data.train[data.train$x > 0, ]\n\ndata.train.sample <- data.train[sample(nrow(data.train), 50000, replace=FALSE),]\nwrite.csv(data.train.sample, file='clv_data_sample.csv', row.names=FALSE)\nparams    <- pnbd.EstimateParameters(data.train.sample)\n\nPlotFrequencyInTrain(params, data.train, censor=10, title=\"Model vs. Actual on Training\")\n\n# Jan - Mar = 12.71\n# Jul - Dec = 26.28\npreds    <- pnbd.ConditionalExpectedTransactions(params, T.star=12.71, data.train[, 'x'], data.train[, 't.x'], data.train[, 'T.cal'])\npreds.df <- data.frame(id=data.train[, 'id'], p=preds)\n\ncompare.trans <- merge(data.test[, c('id', 'x.star')], preds.df)\ncompare.trans <- na.omit(compare.trans)\n\nrmse(act=compare.trans[, \"x.star\"], est=compare.trans[, \"p\"])\nmsle(act=compare.trans[, \"x\"], est=compare.trans[, \"p\"])\n\ndata.validation <- merge(data.train, data.test[, c('id', 'x.star')])\ndata.validation <- merge(data.validation, compare.trans)\ndata.validation <- na.omit(data.validation)\n\nPlotConditionalExpectedFrequency(data.validation, censor=10)\n\n#pnbd.PlotFreqVsConditionalExpectedFrequency(params, T.star=12.71, data.validation, data.validation[, 'x.star'], censor=10)\n#library(ggplot2)\n#ggplot(compare.trans[compare.trans$x.star<30,], aes(x=x.star, y=p)) + \n#  geom_point(shape=1)  +  # Use hollow circles\n#  geom_smooth(method=lm)\n\n\n\n",
+    "created" : 1435902659318.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1029517458",
+    "id" : "C331A2D9",
+    "lastKnownWriteTime" : 1435902685,
+    "path" : "C:/Users/akulkarni/RWorkspace/rfm/clv_pnbd.R",
+    "project_path" : "clv_pnbd.R",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
